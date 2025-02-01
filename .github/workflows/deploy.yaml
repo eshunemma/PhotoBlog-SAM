@@ -15,21 +15,21 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region: eu-west-1
 
       - name: Deploy to Primary Region
         run: |
           sam build
-          sam deploy --stack-name photo-blog-app --region us-east-1 --no-fail-on-empty-changeset
+          sam deploy --stack-name photo-blog-app --region eu-west-1 --no-fail-on-empty-changeset
 
       - name: Configure AWS Credentials (Secondary)
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-west-2
+          aws-region: eu-central-1
 
       - name: Deploy to DR Region
         run: |
           sam build
-          sam deploy --stack-name photo-blog-app-dr --region us-west-2 --no-fail-on-empty-changeset
+          sam deploy --stack-name photo-blog-app-dr --region eu-central-1 --no-fail-on-empty-changeset
