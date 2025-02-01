@@ -20,7 +20,7 @@ jobs:
       - name: Deploy to Primary Region
         run: |
           sam build
-          sam deploy --stack-name photo-blog-app --region eu-west-1 --no-fail-on-empty-changeset --capabilities CAPABILITY_IAM
+          sam deploy --stack-name photo-blog-app --region eu-west-1 --no-fail-on-empty-changeset --capabilities CAPABILITY_IAM --no-confirm-changeset
 
       - name: Configure AWS Credentials (Secondary)
         uses: aws-actions/configure-aws-credentials@v1
@@ -32,4 +32,4 @@ jobs:
       - name: Deploy to DR Region
         run: |
           sam build
-          sam deploy --stack-name photo-blog-app-dr --region eu-central-1 --no-fail-on-empty-changeset --capabilities CAPABILITY_IAM
+          sam deploy --stack-name photo-blog-app-dr --region eu-central-1 --no-fail-on-empty-changeset --capabilities CAPABILITY_IAM --no-confirm-changeset
