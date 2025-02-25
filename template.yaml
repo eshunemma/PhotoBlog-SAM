@@ -24,7 +24,7 @@ Resources:
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      UserPoolName: "PhotoMeUserPool-${Environment}"
+      UserPoolName: !Sub "PhotoMeUserPool-${Environment}"
       UsernameAttributes:
         - email
       AutoVerifiedAttributes:
@@ -50,7 +50,7 @@ Resources:
     Type: AWS::Cognito::UserPoolClient
     Properties:
       UserPoolId: !Ref CognitoUserPool
-      ClientName: "PhotoMeAppClient-${Environment}"
+      ClientName: !Sub "PhotoMeAppClient-${Environment}"
       GenerateSecret: true
       AllowedOAuthFlows:
         - implicit
@@ -76,7 +76,7 @@ Resources:
   PhotoBucket:
     Type: "AWS::S3::Bucket"
     Properties:
-      BucketName: "photome-bucket-${Environment}"
+      BucketName: !Sub "photome-bucket-${Environment}"
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration:
