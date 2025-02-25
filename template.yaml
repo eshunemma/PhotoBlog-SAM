@@ -7,10 +7,10 @@ Transform:
 Parameters:
   Environment:
     Type: String
-    Default: PR
+    Default: pr
     AllowedValues:
-      - PR
-      - DRR
+      - pr
+      - drr
     Description: Environment name for resource naming
 
 Globals:
@@ -67,7 +67,7 @@ Resources:
   CognitoIdentityPool:
     Type: AWS::Cognito::IdentityPool
     Properties:
-      IdentityPoolName: "PhotoMeIdentityPool-${Environment}"
+      IdentityPoolName: !Sub "PhotoMeIdentityPool-${Environment}"
       AllowUnauthenticatedIdentities: false
       CognitoIdentityProviders:
         - ProviderName: !GetAtt CognitoUserPool.ProviderName
@@ -76,7 +76,7 @@ Resources:
   PhotoBucket:
     Type: "AWS::S3::Bucket"
     Properties:
-      BucketName: !Sub "photome-bucket-${Environment}"
+      BucketName: !Sub "photome-bucket-amalitech-sam-${Environment}"
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration:

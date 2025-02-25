@@ -5,10 +5,10 @@ Transform:
 Parameters:
   Environment:
     Type: String
-    Default: dev
+    Default: pr
     AllowedValues:
-    - PR
-    - DRR
+    - pr
+    - drr
     Description: Environment name for resource naming
 Globals:
   Function:
@@ -20,7 +20,8 @@ Resources:
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      UserPoolName: PhotoMeUserPool-${Environment}
+      UserPoolName:
+        Fn::Sub: PhotoMeUserPool-${Environment}
       UsernameAttributes:
       - email
       AutoVerifiedAttributes:
@@ -46,7 +47,8 @@ Resources:
     Properties:
       UserPoolId:
         Ref: CognitoUserPool
-      ClientName: PhotoMeAppClient-${Environment}
+      ClientName:
+        Fn::Sub: PhotoMeAppClient-${Environment}
       GenerateSecret: true
       AllowedOAuthFlows:
       - implicit
@@ -62,7 +64,8 @@ Resources:
   CognitoIdentityPool:
     Type: AWS::Cognito::IdentityPool
     Properties:
-      IdentityPoolName: PhotoMeIdentityPool-${Environment}
+      IdentityPoolName:
+        Fn::Sub: PhotoMeIdentityPool-${Environment}
       AllowUnauthenticatedIdentities: false
       CognitoIdentityProviders:
       - ProviderName:
@@ -74,7 +77,8 @@ Resources:
   PhotoBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: photome-bucket-${Environment}
+      BucketName:
+        Fn::Sub: photome-bucket-amalitech-sam-${Environment}
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration:
