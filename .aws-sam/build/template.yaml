@@ -1,41 +1,37 @@
-AWSTemplateFormatVersion: 2010-09-09
-Description: >-
-  PhotoMe
+AWSTemplateFormatVersion: '2010-09-09'
+Description: PhotoMe
 Transform:
-  - AWS::Serverless-2016-10-31
-
+- AWS::Serverless-2016-10-31
 Parameters:
   Environment:
     Type: String
     Default: dev
     AllowedValues:
-      - PR
-      - DRR
+    - PR
+    - DRR
     Description: Environment name for resource naming
-
 Globals:
   Function:
     Environment:
       Variables:
-        ENVIRONMENT: !Ref Environment
-
+        ENVIRONMENT:
+          Ref: Environment
 Resources:
-  # Cognito
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      UserPoolName: "PhotoMeUserPool-${Environment}"
+      UserPoolName: PhotoMeUserPool-${Environment}
       UsernameAttributes:
-        - email
+      - email
       AutoVerifiedAttributes:
-        - email
+      - email
       Schema:
-        - Name: email
-          AttributeDataType: String
-          Required: true
-        - Name: name
-          AttributeDataType: String
-          Required: true
+      - Name: email
+        AttributeDataType: String
+        Required: true
+      - Name: name
+        AttributeDataType: String
+        Required: true
       Policies:
         PasswordPolicy:
           MinimumLength: 8
@@ -45,38 +41,40 @@ Resources:
           RequireSymbols: false
       AdminCreateUserConfig:
         AllowAdminCreateUserOnly: false
-
   CognitoUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
-      UserPoolId: !Ref CognitoUserPool
-      ClientName: "PhotoMeAppClient-${Environment}"
+      UserPoolId:
+        Ref: CognitoUserPool
+      ClientName: PhotoMeAppClient-${Environment}
       GenerateSecret: true
       AllowedOAuthFlows:
-        - implicit
+      - implicit
       AllowedOAuthScopes:
-        - email
-        - openid
-        - profile
+      - email
+      - openid
+      - profile
       AllowedOAuthFlowsUserPoolClient: true
       CallbackURLs:
-        - https://main.d1dz6uduz5w2pj.amplifyapp.com/dashboard
+      - https://main.d1dz6uduz5w2pj.amplifyapp.com/dashboard
       LogoutURLs:
-        - https://main.d1dz6uduz5w2pj.amplifyapp.com/signout
-
+      - https://main.d1dz6uduz5w2pj.amplifyapp.com/signout
   CognitoIdentityPool:
     Type: AWS::Cognito::IdentityPool
     Properties:
-      IdentityPoolName: "PhotoMeIdentityPool-${Environment}"
+      IdentityPoolName: PhotoMeIdentityPool-${Environment}
       AllowUnauthenticatedIdentities: false
       CognitoIdentityProviders:
-        - ProviderName: !GetAtt CognitoUserPool.ProviderName
-          ClientId: !Ref CognitoUserPoolClient
-
+      - ProviderName:
+          Fn::GetAtt:
+          - CognitoUserPool
+          - ProviderName
+        ClientId:
+          Ref: CognitoUserPoolClient
   PhotoBucket:
-    Type: "AWS::S3::Bucket"
+    Type: AWS::S3::Bucket
     Properties:
-      BucketName: "photome-bucket-${Environment}"
+      BucketName: photome-bucket-${Environment}
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration:
@@ -84,17 +82,17 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
-
   photoTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub "photo-${Environment}"
+      TableName:
+        Fn::Sub: photo-${Environment}
       AttributeDefinitions:
-        - AttributeName: id
-          AttributeType: S
+      - AttributeName: id
+        AttributeType: S
       KeySchema:
-        - AttributeName: id
-          KeyType: HASH
+      - AttributeName: id
+        KeyType: HASH
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
