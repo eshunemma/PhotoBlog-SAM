@@ -20,7 +20,7 @@ Conditions:
   IsPrimaryRegion:
     Fn::Equals:
     - Ref: AWS::Region
-    - us-west-1
+    - eu-west-1
 Resources:
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
@@ -91,6 +91,24 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      ReplicationConfiguration:
+        Fn::If:
+        - IsPrimaryRegion
+        - Role:
+            Fn::GetAtt:
+            - ReplicationRole
+            - Arn
+          Rules:
+          - Status: Enabled
+            Priority: 1
+            DeleteMarkerReplication:
+              Status: Enabled
+            Destination:
+              Bucket:
+                Fn::Sub: arn:aws:s3:::photome-bucket-amalitech-sam-drr
+            Filter:
+              Prefix: ''
+        - Ref: AWS::NoValue
   ReplicationRole:
     Type: AWS::IAM::Role
     Condition: IsPrimaryRegion
@@ -113,27 +131,6 @@ Resources:
             Resource:
             - Fn::Sub: arn:aws:s3:::photome-bucket-amalitech-sam-pr/*
             - Fn::Sub: arn:aws:s3:::photome-bucket-amalitech-sam-drr/*
-  S3ReplicationConfig:
-    Type: AWS::S3::Bucket
-    Condition: IsPrimaryRegion
-    Properties:
-      BucketName:
-        Fn::Sub: photome-bucket-amalitech-sam-pr
-      ReplicationConfiguration:
-        Role:
-          Fn::GetAtt:
-          - ReplicationRole
-          - Arn
-        Rules:
-        - Status: Enabled
-          Priority: 1
-          DeleteMarkerReplication:
-            Status: Enabled
-          Destination:
-            Bucket:
-              Fn::Sub: arn:aws:s3:::photome-bucket-amalitech-sam-drr
-          Filter:
-            Prefix: ''
   photoTable:
     Type: AWS::DynamoDB::Table
     Condition: IsPrimaryRegion
