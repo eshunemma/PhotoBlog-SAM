@@ -195,10 +195,7 @@ Resources:
     - PhotoTable
     - PhotoBucketStaging
     - PhotoBucketProcessed
-    - ImageProcessingLambdaRole
     - PhotoBucketStaging
-    - ImageProcessingLambda
-    - ImageProcessingLambdaS3EventPermission
     Properties:
       FunctionName:
         Fn::Sub: ImageProcessor-${Environment}
@@ -225,12 +222,5 @@ Resources:
             Ref: PhotoBucketProcessed
           DYNAMODB_TABLE:
             Ref: PhotoTable
-      Events:
-        S3Event:
-          Type: S3
-          Properties:
-            Bucket:
-              Ref: PhotoBucketStaging
-            Events: s3:ObjectCreated:*
     Metadata:
       SamResourceId: ImageProcessingLambda

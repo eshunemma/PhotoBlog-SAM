@@ -183,14 +183,11 @@ Resources:
     ## Lambda Function (Processes Image & Adds Watermark)
   ImageProcessingLambda:
     Type: AWS::Serverless::Function
-    DependsOn:
-      - PhotoTable
-      - PhotoBucketStaging
-      - PhotoBucketProcessed
-      - ImageProcessingLambdaRole
-      - PhotoBucketStaging
-      - ImageProcessingLambda
-      - ImageProcessingLambdaS3EventPermission
+    # DependsOn:
+    #   - PhotoTable
+    #   - PhotoBucketStaging
+    #   - PhotoBucketProcessed
+    #   - PhotoBucketStaging
     Properties:
       FunctionName: !Sub ImageProcessor-${Environment}
       Runtime: nodejs18.x
@@ -210,9 +207,9 @@ Resources:
           STAGING_BUCKET: !Ref PhotoBucketStaging
           PROCESSED_BUCKET: !Ref PhotoBucketProcessed
           DYNAMODB_TABLE: !Ref PhotoTable
-      Events:
-        S3Event:
-          Type: S3
-          Properties:
-            Bucket: !Ref PhotoBucketStaging
-            Events: s3:ObjectCreated:*
+      # Events:
+      #   S3Event:
+      #     Type: S3
+      #     Properties:
+      #       Bucket: !Ref PhotoBucketStaging
+      #       Events: s3:ObjectCreated:*
