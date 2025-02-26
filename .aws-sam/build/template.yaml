@@ -109,13 +109,6 @@ Resources:
             Filter:
               Prefix: ''
         - Ref: AWS::NoValue
-      NotificationConfiguration:
-        LambdaConfigurations:
-        - Event: s3:ObjectCreated:*
-          Function:
-            Fn::GetAtt:
-            - ImageProcessingLambda
-            - Arn
   PhotoBucketProcessed:
     Type: AWS::S3::Bucket
     Properties:
@@ -182,44 +175,3 @@ Resources:
       - AttributeName: id
         KeyType: HASH
       BillingMode: PAY_PER_REQUEST
-  ImageProcessingLambda:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName:
-        Fn::Sub: ImageProcessor-${Environment}
-      Runtime: nodejs18.x
-      Handler: process-image.handler
-      Timeout: 60
-      CodeUri: ImageProcessingLambda
-      MemorySize: 512
-      Policies:
-      - S3ReadPolicy:
-          BucketName:
-            Ref: PhotoBucketStaging
-      - S3WritePolicy:
-          BucketName:
-            Ref: PhotoBucketProcessed
-      - DynamoDBCrudPolicy:
-          TableName:
-            Ref: PhotoTable
-      Environment:
-        Variables:
-          STAGING_BUCKET:
-            Ref: PhotoBucketStaging
-          PROCESSED_BUCKET:
-            Ref: PhotoBucketProcessed
-          DYNAMODB_TABLE:
-            Ref: PhotoTable
-    Metadata:
-      SamResourceId: ImageProcessingLambda
-  LambdaInvokePermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName:
-        Ref: ImageProcessingLambda
-      Action: lambda:InvokeFunction
-      Principal: s3.amazonaws.com
-      SourceArn:
-        Fn::GetAtt:
-        - PhotoBucketStaging
-        - Arn
