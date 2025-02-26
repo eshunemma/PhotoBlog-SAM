@@ -1,5 +1,5 @@
 const AWS = require("aws-sdk");
-const Jimp = require("jimp"); // Image processing library
+const sharp = require("sharp");
 const s3 = new AWS.S3();
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
@@ -13,24 +13,43 @@ exports.handler = async (event) => {
       const { bucket, object } = record.s3;
       const imageKey = object.key;
 
-      // Fetch user metadata (e.g., Name)
-      const userName = extractUserName(imageKey); // Assuming filename includes user info
+      // Extract user metadata (Assume filename contains user info)
+      // const userName = extractUserName(imageKey);
+      const userName = imageKey;
       const uploadDate = new Date().toISOString().split("T")[0];
 
       // Get the uploaded image from S3
       const image = await s3
         .getObject({ Bucket: bucket.name, Key: imageKey })
         .promise();
-      const jimpImage = await Jimp.read(image.Body);
 
-      // Add watermark
-      const font = await Jimp.loadFont(Jimp.FONT_SANS_32_WHITE);
-      jimpImage.print(font, 10, 10, `${userName} - ${uploadDate}`);
+      // Generate watermark text
+      const watermarkText = `${userName} - ${uploadDate}`;
 
-      // Convert image to Buffer and save in processed bucket
-      const processedBuffer = await jimpImage.getBufferAsync(Jimp.MIME_PNG);
+      // Create a watermark overlay
+      const watermark = await sharp({
+        text: {
+          text: watermarkText,
+          font: "sans",
+          rgba: true,
+          width: 500,
+          height: 50,
+          align: "center",
+        },
+      })
+        .png()
+        .toBuffer();
+
+      // Process the image with Sharp (Adding watermark)
+      const processedBuffer = await sharp(image.Body)
+        .composite([{ input: watermark, gravity: "southeast" }]) // Position watermark
+        .toFormat("png")
+        .toBuffer();
+
+      // Define the new processed image key
       const newImageKey = `processed/${imageKey}`;
 
+      // Upload processed image to Primary S3 bucket
       await s3
         .putObject({
           Bucket: PROCESSED_BUCKET,
@@ -66,7 +85,7 @@ exports.handler = async (event) => {
   }
 };
 
-// Function to extract user's name from file name (Adjust based on actual implementation)
+// Extract user's name from filename (Adjust logic based on actual naming convention)
 function extractUserName(fileName) {
   return fileName.split("_")[0] || "UnknownUser";
 }
