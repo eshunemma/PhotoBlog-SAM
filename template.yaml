@@ -149,11 +149,24 @@ Resources:
                   - s3:ReplicateObject
                   - s3:ReplicateDelete
                   - s3:GetObjectVersionForReplication
+                  - s3:GetObjectVersion
+                  - s3:GetObjectVersionAcl
+                  - s3:GetObjectVersionTagging
                 Resource:
                   - !Sub "arn:aws:s3:::photome-bucket-amalitech-staging-pr/*"
                   - !Sub "arn:aws:s3:::photome-bucket-amalitech-processed-pr/*"
                   - !Sub "arn:aws:s3:::photome-bucket-amalitech-staging-drr/*"
                   - !Sub "arn:aws:s3:::photome-bucket-amalitech-processed-drr/*"
+
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:GetReplicationConfiguration
+                Resource:
+                  - !Sub "arn:aws:s3:::photome-bucket-amalitech-staging-pr"
+                  - !Sub "arn:aws:s3:::photome-bucket-amalitech-processed-pr"
+                  - !Sub "arn:aws:s3:::photome-bucket-amalitech-staging-drr"
+                  - !Sub "arn:aws:s3:::photome-bucket-amalitech-processed-drr"
 
   PhotoTable:
     Type: AWS::DynamoDB::Table
