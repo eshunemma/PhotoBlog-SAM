@@ -213,3 +213,25 @@ Resources:
       #     Properties:
       #       Bucket: !Ref PhotoBucketStaging
       #       Events: s3:ObjectCreated:*
+
+  UploadImageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub UploadImageFunction-${Environment}
+      Handler: upload-image.handler
+      Runtime: nodejs18.x
+      MemorySize: 256
+      Timeout: 10
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref PhotoBucketStaging
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Ref PhotoBucketStaging
+      CodeUri: src/handlers/
+      Events:
+        UploadApi:
+          Type: Api
+          Properties:
+            Path: /upload
+            Method: post

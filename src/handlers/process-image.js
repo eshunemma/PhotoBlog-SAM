@@ -2,6 +2,7 @@ const AWS = require("aws-sdk");
 const sharp = require("sharp");
 const s3 = new AWS.S3();
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
+const { v4: uuidv4 } = require("uuid");
 
 const STAGING_BUCKET = process.env.STAGING_BUCKET;
 const PROCESSED_BUCKET = process.env.PROCESSED_BUCKET;
@@ -23,17 +24,22 @@ exports.handler = async (event) => {
         .getObject({ Bucket: bucket.name, Key: imageKey })
         .promise();
 
+      const imageBuffer = image.Body;
+
+      // Get image metadata (width & height)
+      const metadata = await sharp(imageBuffer).metadata();
+      const { width, height } = metadata;
+
       // Generate watermark text
       const watermarkText = `${userName} - ${uploadDate}`;
-
       // Create a watermark overlay
       const watermark = await sharp({
         text: {
           text: watermarkText,
           font: "sans",
           rgba: true,
-          width: 500,
-          height: 50,
+          width: Math.floor(width * 0.5),
+          height: Math.floor(height * 0.1),
           align: "center",
         },
       })
@@ -64,6 +70,7 @@ exports.handler = async (event) => {
         .put({
           TableName: DYNAMODB_TABLE,
           Item: {
+            id: uuidv4(),
             imageId: imageKey,
             userName: userName,
             processedUrl: `https://${PROCESSED_BUCKET}.s3.amazonaws.com/${newImageKey}`,
