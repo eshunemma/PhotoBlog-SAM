@@ -81,6 +81,8 @@ Resources:
           Ref: CognitoUserPoolClient
   PhotoBucketStaging:
     Type: AWS::S3::Bucket
+    DependsOn:
+    - PhotoBucketProcessed
     Properties:
       BucketName:
         Fn::Sub: photome-bucket-amalitech-staging-${Environment}
@@ -158,11 +160,23 @@ Resources:
             - s3:ReplicateObject
             - s3:ReplicateDelete
             - s3:GetObjectVersionForReplication
+            - s3:GetObjectVersion
+            - s3:GetObjectVersionAcl
+            - s3:GetObjectVersionTagging
             Resource:
             - Fn::Sub: arn:aws:s3:::photome-bucket-amalitech-staging-pr/*
             - Fn::Sub: arn:aws:s3:::photome-bucket-amalitech-processed-pr/*
             - Fn::Sub: arn:aws:s3:::photome-bucket-amalitech-staging-drr/*
             - Fn::Sub: arn:aws:s3:::photome-bucket-amalitech-processed-drr/*
+          - Effect: Allow
+            Action:
+            - s3:ListBucket
+            - s3:GetReplicationConfiguration
+            Resource:
+            - Fn::Sub: arn:aws:s3:::photome-bucket-amalitech-staging-pr
+            - Fn::Sub: arn:aws:s3:::photome-bucket-amalitech-processed-pr
+            - Fn::Sub: arn:aws:s3:::photome-bucket-amalitech-staging-drr
+            - Fn::Sub: arn:aws:s3:::photome-bucket-amalitech-processed-drr
   PhotoTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -175,3 +189,48 @@ Resources:
       - AttributeName: id
         KeyType: HASH
       BillingMode: PAY_PER_REQUEST
+  ImageProcessingLambda:
+    Type: AWS::Serverless::Function
+    DependsOn:
+    - PhotoTable
+    - PhotoBucketStaging
+    - PhotoBucketProcessed
+    - ImageProcessingLambdaRole
+    - PhotoBucketStaging
+    - ImageProcessingLambda
+    - ImageProcessingLambdaS3EventPermission
+    Properties:
+      FunctionName:
+        Fn::Sub: ImageProcessor-${Environment}
+      Runtime: nodejs18.x
+      Handler: process-image.handler
+      Timeout: 60
+      CodeUri: ImageProcessingLambda
+      MemorySize: 512
+      Policies:
+      - S3ReadPolicy:
+          BucketName:
+            Ref: PhotoBucketStaging
+      - S3WritePolicy:
+          BucketName:
+            Ref: PhotoBucketProcessed
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: PhotoTable
+      Environment:
+        Variables:
+          STAGING_BUCKET:
+            Ref: PhotoBucketStaging
+          PROCESSED_BUCKET:
+            Ref: PhotoBucketProcessed
+          DYNAMODB_TABLE:
+            Ref: PhotoTable
+      Events:
+        S3Event:
+          Type: S3
+          Properties:
+            Bucket:
+              Ref: PhotoBucketStaging
+            Events: s3:ObjectCreated:*
+    Metadata:
+      SamResourceId: ImageProcessingLambda
