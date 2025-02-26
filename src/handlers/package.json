@@ -1,0 +1,16 @@
+{
+  "name": "handlers",
+  "version": "1.0.0",
+  "main": "process-image.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "aws-sdk": "^2.1692.0",
+    "jimp": "^1.6.0"
+  }
+}
