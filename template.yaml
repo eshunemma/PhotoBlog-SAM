@@ -181,34 +181,34 @@ Resources:
       BillingMode: PAY_PER_REQUEST
 
     ## Lambda Function (Processes Image & Adds Watermark)
-  # ImageProcessingLambda:
-  #   Type: AWS::Serverless::Function
-  #   DependsOn:
-  #     - PhotoTable
-  #     - PhotoBucketStaging
-  #     - PhotoBucketProcessed
-  #   Properties:
-  #     FunctionName: !Sub ImageProcessor-${Environment}
-  #     Runtime: nodejs18.x
-  #     Handler: process-image.handler
-  #     Timeout: 60
-  #     CodeUri: src/handlers
-  #     MemorySize: 512
-  #     Policies:
-  #       - S3ReadPolicy:
-  #           BucketName: !Ref PhotoBucketStaging
-  #       - S3WritePolicy:
-  #           BucketName: !Ref PhotoBucketProcessed
-  #       - DynamoDBCrudPolicy:
-  #           TableName: !Ref PhotoTable
-  #     Environment:
-  #       Variables:
-  #         STAGING_BUCKET: !Ref PhotoBucketStaging
-  #         PROCESSED_BUCKET: !Ref PhotoBucketProcessed
-  #         DYNAMODB_TABLE: !Ref PhotoTable
-  #     Events:
-  #       S3Event:
-  #         Type: S3
-  #         Properties:
-  #           Bucket: !Ref PhotoBucketStaging
-  #           Events: s3:ObjectCreated:*
+  ImageProcessingLambda:
+    Type: AWS::Serverless::Function
+    DependsOn:
+      - PhotoTable
+      - PhotoBucketStaging
+      - PhotoBucketProcessed
+    Properties:
+      FunctionName: !Sub ImageProcessor-${Environment}
+      Runtime: nodejs18.x
+      Handler: process-image.handler
+      Timeout: 60
+      CodeUri: src/handlers
+      MemorySize: 512
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref PhotoBucketStaging
+        - S3WritePolicy:
+            BucketName: !Ref PhotoBucketProcessed
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PhotoTable
+      Environment:
+        Variables:
+          STAGING_BUCKET: !Ref PhotoBucketStaging
+          PROCESSED_BUCKET: !Ref PhotoBucketProcessed
+          DYNAMODB_TABLE: !Ref PhotoTable
+      Events:
+        S3Event:
+          Type: S3
+          Properties:
+            Bucket: !Ref PhotoBucketStaging
+            Events: s3:ObjectCreated:*
