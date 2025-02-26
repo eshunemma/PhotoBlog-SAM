@@ -80,6 +80,8 @@ Resources:
 
   PhotoBucketStaging:
     Type: "AWS::S3::Bucket"
+    DependsOn:
+      - PhotoBucketProcessed
     Properties:
       BucketName: !Sub "photome-bucket-amalitech-staging-${Environment}"
       VersioningConfiguration:
