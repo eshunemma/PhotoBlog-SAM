@@ -10,6 +10,19 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+        - name: Configure AWS Credentials (Secondary)
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
+      - name: Deploy to DR Region
+        run: |
+          npm install
+          sam build
+          sam deploy --stack-name photo-blog-app-dr --parameter-overrides Environment=drr IsPrimaryRegion=false --region eu-central-1 --no-fail-on-empty-changeset --capabilities CAPABILITY_IAM --no-confirm-changeset
+
       - name: Configure AWS Credentials (Primary)
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -23,15 +36,3 @@ jobs:
           sam build
           sam deploy --stack-name photo-blog-app --parameter-overrides Environment=pr --region eu-west-1 --no-fail-on-empty-changeset --capabilities CAPABILITY_IAM --no-confirm-changeset
 
-      - name: Configure AWS Credentials (Secondary)
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-central-1
-
-      - name: Deploy to DR Region
-        run: |
-          npm install
-          sam build
-          sam deploy --stack-name photo-blog-app-dr --parameter-overrides Environment=drr IsPrimaryRegion=false --region eu-central-1 --no-fail-on-empty-changeset --capabilities CAPABILITY_IAM --no-confirm-changeset
