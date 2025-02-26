@@ -193,7 +193,7 @@ Resources:
       Runtime: nodejs18.x
       Handler: process-image.handler
       Timeout: 60
-      CodeUri: /
+      CodeUri: src/handlers/
       MemorySize: 512
       Policies:
         - S3ReadPolicy:

@@ -10,6 +10,12 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      - name: Install Node.js Dependencies 
+        run: |
+          cd src/handlers
+          npm install
+
+
       - name: Configure AWS Credentials (Secondary)
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -19,7 +25,6 @@ jobs:
 
       - name: Deploy to DR Region
         run: |
-          npm install
           sam build
           sam deploy --stack-name photo-blog-app-dr --parameter-overrides Environment=drr IsPrimaryRegion=false --region eu-central-1 --no-fail-on-empty-changeset --capabilities CAPABILITY_IAM --no-confirm-changeset
 
@@ -32,6 +37,5 @@ jobs:
 
       - name: Deploy to Primary Region
         run: |
-          npm install
           sam build
           sam deploy --stack-name photo-blog-app --parameter-overrides Environment=pr --region eu-west-1 --no-fail-on-empty-changeset --capabilities CAPABILITY_IAM --no-confirm-changeset
