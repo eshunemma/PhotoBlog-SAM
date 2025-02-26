@@ -7,7 +7,7 @@ const STAGING_BUCKET = process.env.STAGING_BUCKET;
 const PROCESSED_BUCKET = process.env.PROCESSED_BUCKET;
 const DYNAMODB_TABLE = process.env.DYNAMODB_TABLE;
 
-export const handler = async (event) => {
+exports.handler = async (event) => {
   try {
     for (const record of event.Records) {
       const { bucket, object } = record.s3;
