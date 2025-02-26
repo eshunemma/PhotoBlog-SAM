@@ -79,11 +79,11 @@ Resources:
           - ProviderName
         ClientId:
           Ref: CognitoUserPoolClient
-  PhotoBucket:
+  PhotoBucketStaging:
     Type: AWS::S3::Bucket
     Properties:
       BucketName:
-        Fn::Sub: photome-bucket-amalitech-sam-${Environment}
+        Fn::Sub: photome-bucket-amalitech-staging-${Environment}
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration:
@@ -105,7 +105,44 @@ Resources:
               Status: Enabled
             Destination:
               Bucket:
-                Fn::Sub: arn:aws:s3:::photome-bucket-amalitech-sam-drr
+                Fn::Sub: arn:aws:s3:::photome-bucket-amalitech-staging-drr
+            Filter:
+              Prefix: ''
+        - Ref: AWS::NoValue
+      NotificationConfiguration:
+        LambdaConfigurations:
+        - Event: s3:ObjectCreated:*
+          Function:
+            Fn::GetAtt:
+            - ImageProcessingLambda
+            - Arn
+  PhotoBucketProcessed:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Fn::Sub: photome-bucket-amalitech-processed-${Environment}
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      ReplicationConfiguration:
+        Fn::If:
+        - IsPrimaryRegion
+        - Role:
+            Fn::GetAtt:
+            - ReplicationRole
+            - Arn
+          Rules:
+          - Status: Enabled
+            Priority: 1
+            DeleteMarkerReplication:
+              Status: Enabled
+            Destination:
+              Bucket:
+                Fn::Sub: arn:aws:s3:::photome-bucket-amalitech-processed-drr
             Filter:
               Prefix: ''
         - Ref: AWS::NoValue
@@ -129,11 +166,12 @@ Resources:
             - s3:ReplicateDelete
             - s3:GetObjectVersionForReplication
             Resource:
-            - Fn::Sub: arn:aws:s3:::photome-bucket-amalitech-sam-pr/*
-            - Fn::Sub: arn:aws:s3:::photome-bucket-amalitech-sam-drr/*
-  photoTable:
+            - Fn::Sub: arn:aws:s3:::photome-bucket-amalitech-staging-pr/*
+            - Fn::Sub: arn:aws:s3:::photome-bucket-amalitech-processed-pr/*
+            - Fn::Sub: arn:aws:s3:::photome-bucket-amalitech-staging-drr/*
+            - Fn::Sub: arn:aws:s3:::photome-bucket-amalitech-processed-drr/*
+  PhotoTable:
     Type: AWS::DynamoDB::Table
-    Condition: IsPrimaryRegion
     Properties:
       TableName:
         Fn::Sub: photo-${Environment}
@@ -143,6 +181,45 @@ Resources:
       KeySchema:
       - AttributeName: id
         KeyType: HASH
-      ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+      BillingMode: PAY_PER_REQUEST
+  ImageProcessingLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        Fn::Sub: ImageProcessor-${Environment}
+      Runtime: nodejs18.x
+      Handler: process-image.handler
+      Timeout: 60
+      CodeUri: ImageProcessingLambda
+      MemorySize: 512
+      Policies:
+      - S3ReadPolicy:
+          BucketName:
+            Ref: PhotoBucketStaging
+      - S3WritePolicy:
+          BucketName:
+            Ref: PhotoBucketProcessed
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: PhotoTable
+      Environment:
+        Variables:
+          STAGING_BUCKET:
+            Ref: PhotoBucketStaging
+          PROCESSED_BUCKET:
+            Ref: PhotoBucketProcessed
+          DYNAMODB_TABLE:
+            Ref: PhotoTable
+    Metadata:
+      SamResourceId: ImageProcessingLambda
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName:
+        Ref: ImageProcessingLambda
+      Action: lambda:InvokeFunction
+      Principal: s3.amazonaws.com
+      SourceArn:
+        Fn::GetAtt:
+        - PhotoBucketStaging
+        - Arn

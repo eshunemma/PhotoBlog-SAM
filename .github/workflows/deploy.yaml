@@ -19,6 +19,7 @@ jobs:
 
       - name: Deploy to Primary Region
         run: |
+          npm install
           sam build
           sam deploy --stack-name photo-blog-app --parameter-overrides Environment=pr --region eu-west-1 --no-fail-on-empty-changeset --capabilities CAPABILITY_IAM --no-confirm-changeset
 

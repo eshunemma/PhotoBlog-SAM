@@ -6,7 +6,8 @@
     "dependencies": {
         "@aws-sdk/client-dynamodb": "^3.188.0",
         "@aws-sdk/lib-dynamodb": "^3.188.0",
-        "aws-sdk": "^2.1692.0"
+        "aws-sdk": "^2.1692.0",
+        "jimp": "^1.6.0"
     },
     "devDependencies": {
         "aws-sdk-client-mock": "^2.0.0",
